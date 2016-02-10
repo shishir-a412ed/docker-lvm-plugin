@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/Sirupsen/logrus"
 )
 
 const (
@@ -13,14 +15,18 @@ const (
 
 var (
 	flVgPath  *string
+	flHome    *string
 	flVersion *bool
+	flDebug   *bool
 	flListen  *string
 )
 
 func init() {
 	flVgPath = flag.String("vg-config", vgConfigPath, "Location of the volume group config file")
+	flHome = flag.String("home", "/var/run/docker-lvm", "Home directory for lvm volume storage")
 	flVersion = flag.Bool("version", false, "Print version information and quit")
-	flListen = flag.String("listen", lvmPluginSocketPath+"/lvm.sock", "socket to listen for incoming connections")
+	flDebug = flag.Bool("debug", false, "Enable debug logging")
+	flListen = flag.String("listen", lvmPluginSocketPath+"/lvm.sock", "Socket to listen for incoming connections")
 }
 
 func main() {
@@ -30,6 +36,20 @@ func main() {
 	if *flVersion {
 		fmt.Fprint(os.Stdout, "docker lvm plugin version: 1.0\n")
 		return
+	}
+
+	if *flDebug {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
+	if _, err := os.Stat(*flHome); err != nil {
+		if !os.IsNotExist(err) {
+			logrus.Fatal(err)
+		}
+		logrus.Debugf("Created home dir at %s", *flHome)
+		if err := os.MkdirAll(*flHome, 0700); err != nil {
+			logrus.Fatal(err)
+		}
 	}
 
 	fmt.Println("docker lvm plugin successful")
