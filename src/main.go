@@ -52,5 +52,12 @@ func main() {
 		}
 	}
 
+	lvm := newDriver(*flVgPath, *flHome)
+
+	h := volume.NewHandler(lvm)
+	if err := h.ServeUnix("root", *flListen); err != nil {
+		logrus.Fatal(err)
+	}
+
 	fmt.Println("docker lvm plugin successful")
 }
