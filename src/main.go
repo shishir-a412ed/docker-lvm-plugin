@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Sirupsen/logrus"
+	"github.com/docker/go-plugins-helpers/volume"
 )
 
 const (
@@ -52,7 +53,12 @@ func main() {
 		}
 	}
 
-	lvm := newDriver(*flVgPath, *flHome)
+	_, err := os.Create(*flVgPath)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+
+	lvm := newDriver(*flHome, *flVgPath)
 
 	h := volume.NewHandler(lvm)
 	if err := h.ServeUnix("root", *flListen); err != nil {
