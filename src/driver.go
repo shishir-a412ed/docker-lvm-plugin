@@ -66,6 +66,11 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
 
+	cmd = exec.Command("mkfs.xfs", fmt.Sprintf("/dev/%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return resp(fmt.Errorf("%s", string(out)))
+	}
+
 	mp := getMountpoint(l.home, req.Name)
 	if err := os.MkdirAll(mp, 0700); err != nil {
 		return resp(err)
@@ -126,6 +131,7 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]++
+
 	return resp(getMountpoint(l.home, req.Name))
 }
 
