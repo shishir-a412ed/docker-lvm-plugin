@@ -62,8 +62,8 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	}
 
 	cmd := exec.Command("lvcreate", "-n", req.Name, "--size", size, strings.Trim(string(vgName), "\n"))
-	if err := cmd.Run(); err != nil {
-		return resp(err)
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return resp(fmt.Errorf("%s", string(out)))
 	}
 
 	mp := getMountpoint(l.home, req.Name)
