@@ -131,7 +131,14 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]++
-
+	vgName, err := ioutil.ReadFile(l.vgConfig)
+	if err != nil {
+		return resp(err)
+	}
+	cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", strings.Trim(string(vgName), "\n"), req.Name), getMountpoint(l.home, req.Name))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return resp(fmt.Errorf("%s", string(out)))
+	}
 	return resp(getMountpoint(l.home, req.Name))
 }
 
@@ -141,6 +148,11 @@ func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]--
+	cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return resp(fmt.Errorf("%s", string(out)))
+	}
+
 	return resp(getMountpoint(l.home, req.Name))
 }
 
