@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"sync"
 
@@ -37,6 +39,8 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	defer l.Unlock()
 	var size string
 
+	fmt.Println("HELLO LVM PLUGIN: CREATE")
+
 	if v, exists := l.volumes[req.Name]; exists {
 		return resp(v.mountPoint)
 	}
@@ -62,15 +66,49 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		return resp(err)
 	}
 
-	return resp("/home/smahajan/lvm-plugin")
+	mp := getMountpoint(l.home, req.Name)
+	if err := os.MkdirAll(mp, 0700); err != nil {
+		return resp(err)
+	}
+
+	v := &vol{req.Name, mp}
+	l.volumes[v.name] = v
+	l.count[v] = 0
+	return resp(v.mountPoint)
 }
 
 func (l *lvmDriver) List(req volume.Request) volume.Response {
-	return resp(nil)
+	fmt.Println("HELLO LVM PLUGIN: LIST")
+	var res volume.Response
+	l.Lock()
+	defer l.Unlock()
+	var ls []*volume.Volume
+	fmt.Println(len(ls))
+	for _, vol := range l.volumes {
+		v := &volume.Volume{
+			Name:       vol.name,
+			Mountpoint: vol.mountPoint,
+		}
+		ls = append(ls, v)
+	}
+	res.Volumes = ls
+	return res
 }
 
 func (l *lvmDriver) Get(req volume.Request) volume.Response {
-	return resp(nil)
+	fmt.Println("HELLO LVM PLUGIN: GET")
+	var res volume.Response
+	l.Lock()
+	defer l.Unlock()
+	v, exists := l.volumes[req.Name]
+	if !exists {
+		return resp(fmt.Errorf("no such volume"))
+	}
+	res.Volume = &volume.Volume{
+		Name:       v.name,
+		Mountpoint: v.mountPoint,
+	}
+	return res
 }
 
 func (l *lvmDriver) Remove(req volume.Request) volume.Response {
@@ -78,16 +116,30 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Path(req volume.Request) volume.Response {
-	return resp(nil)
+	fmt.Println("HELLO LVM PLUGIN: PATH")
+	return resp(getMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	fmt.Println("HELLO LVM PLUGIN: MOUNT")
-	return resp(nil)
+	l.Lock()
+	defer l.Unlock()
+	v := l.volumes[req.Name]
+	l.count[v]++
+	return resp(getMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
-	return resp(nil)
+	fmt.Println("HELLO LVM PLUGIN: UNMOUNT")
+	l.Lock()
+	defer l.Unlock()
+	v := l.volumes[req.Name]
+	l.count[v]--
+	return resp(getMountpoint(l.home, req.Name))
+}
+
+func getMountpoint(home, name string) string {
+	return path.Join(home, name)
 }
 
 func resp(r interface{}) volume.Response {
