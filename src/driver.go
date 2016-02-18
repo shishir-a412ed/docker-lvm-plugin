@@ -134,6 +134,8 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
 
+	v := l.volumes[req.Name]
+	delete(l.count, v)
 	delete(l.volumes, req.Name)
 	return resp(getMountpoint(l.home, req.Name))
 }
