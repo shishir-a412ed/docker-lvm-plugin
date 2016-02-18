@@ -129,7 +129,7 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 		return resp(err)
 	}
 
-	cmd := exec.Command("lvremove", fmt.Sprintf("%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
+	cmd := exec.Command("lvremove", "--force", fmt.Sprintf("%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
