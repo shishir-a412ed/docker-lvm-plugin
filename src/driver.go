@@ -116,7 +116,26 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Remove(req volume.Request) volume.Response {
-	return resp(nil)
+	fmt.Println("HELLO LVM PLUGIN: REMOVE")
+	l.Lock()
+	defer l.Unlock()
+
+	if err := os.RemoveAll(getMountpoint(l.home, req.Name)); err != nil {
+		return resp(err)
+	}
+
+	vgName, err := ioutil.ReadFile(l.vgConfig)
+	if err != nil {
+		return resp(err)
+	}
+
+	cmd := exec.Command("lvremove", fmt.Sprintf("%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
+	if out, err := cmd.CombinedOutput(); err != nil {
+		return resp(fmt.Errorf("%s", string(out)))
+	}
+
+	delete(l.volumes, req.Name)
+	return resp(getMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Path(req volume.Request) volume.Response {
