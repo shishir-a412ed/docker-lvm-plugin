@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -21,8 +22,8 @@ type lvmDriver struct {
 }
 
 type vol struct {
-	name       string
-	mountPoint string
+	Name       string `json:"name"`
+	MountPoint string `json:"mountpoint"`
 }
 
 func newDriver(home, vgConfig string) *lvmDriver {
@@ -42,7 +43,7 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	fmt.Println("HELLO LVM PLUGIN: CREATE")
 
 	if v, exists := l.volumes[req.Name]; exists {
-		return resp(v.mountPoint)
+		return resp(v.MountPoint)
 	}
 
 	vgName, err := getVolumegroupName(l.vgConfig)
@@ -77,9 +78,12 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	}
 
 	v := &vol{req.Name, mp}
-	l.volumes[v.name] = v
+	l.volumes[v.Name] = v
 	l.count[v] = 0
-	return resp(v.mountPoint)
+	if err := saveToDisk(l.volumes); err != nil {
+		return resp(err)
+	}
+	return resp(v.MountPoint)
 }
 
 func (l *lvmDriver) List(req volume.Request) volume.Response {
@@ -90,8 +94,8 @@ func (l *lvmDriver) List(req volume.Request) volume.Response {
 	var ls []*volume.Volume
 	for _, vol := range l.volumes {
 		v := &volume.Volume{
-			Name:       vol.name,
-			Mountpoint: vol.mountPoint,
+			Name:       vol.Name,
+			Mountpoint: vol.MountPoint,
 		}
 		ls = append(ls, v)
 	}
@@ -109,8 +113,8 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("no such volume"))
 	}
 	res.Volume = &volume.Volume{
-		Name:       v.name,
-		Mountpoint: v.mountPoint,
+		Name:       v.Name,
+		Mountpoint: v.MountPoint,
 	}
 	return res
 }
@@ -188,6 +192,16 @@ func getVolumegroupName(vgConfig string) (string, error) {
 
 func getMountpoint(home, name string) string {
 	return path.Join(home, name)
+}
+
+func saveToDisk(volumes map[string]*vol) error {
+	fh, err := os.Create(lvmConfigPath)
+	if err != nil {
+		return err
+	}
+	defer fh.Close()
+
+	return json.NewEncoder(fh).Encode(&volumes)
 }
 
 func resp(r interface{}) volume.Response {
