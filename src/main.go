@@ -11,7 +11,7 @@ import (
 
 const (
 	lvmPluginSocketPath = "/var/run/docker/plugins"
-	vgConfigPath        = "/etc/sysconfig/docker-lvm-driver"
+	vgConfigPath        = "/etc/sysconfig/docker-lvm-volumegroup"
 )
 
 var (
