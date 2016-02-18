@@ -45,7 +45,7 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		return resp(v.mountPoint)
 	}
 
-	vgName, err := ioutil.ReadFile(l.vgConfig)
+	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
 		return resp(err)
 	}
@@ -61,12 +61,12 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		}
 	}
 
-	cmd := exec.Command("lvcreate", "-n", req.Name, "--size", size, strings.Trim(string(vgName), "\n"))
+	cmd := exec.Command("lvcreate", "-n", req.Name, "--size", size, vgName)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
 
-	cmd = exec.Command("mkfs.xfs", fmt.Sprintf("/dev/%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
+	cmd = exec.Command("mkfs.xfs", fmt.Sprintf("/dev/%s/%s", vgName, req.Name))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
@@ -124,12 +124,12 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 		return resp(err)
 	}
 
-	vgName, err := ioutil.ReadFile(l.vgConfig)
+	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
 		return resp(err)
 	}
 
-	cmd := exec.Command("lvremove", "--force", fmt.Sprintf("%s/%s", strings.Trim(string(vgName), "\n"), req.Name))
+	cmd := exec.Command("lvremove", "--force", fmt.Sprintf("%s/%s", vgName, req.Name))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
@@ -149,11 +149,13 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]++
-	vgName, err := ioutil.ReadFile(l.vgConfig)
+
+	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
 		return resp(err)
 	}
-	cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", strings.Trim(string(vgName), "\n"), req.Name), getMountpoint(l.home, req.Name))
+
+	cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", vgName, req.Name), getMountpoint(l.home, req.Name))
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
@@ -172,6 +174,14 @@ func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 	}
 
 	return resp(getMountpoint(l.home, req.Name))
+}
+
+func getVolumegroupName(vgConfig string) (string, error) {
+	vgName, err := ioutil.ReadFile(vgConfig)
+	if err != nil {
+		return "", err
+	}
+	return strings.Trim(string(vgName), "\n"), nil
 }
 
 func getMountpoint(home, name string) string {
