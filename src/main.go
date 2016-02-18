@@ -54,8 +54,11 @@ func main() {
 	}
 
 	if _, err := os.Stat(*flVgPath); os.IsNotExist(err) {
-		_, err := os.Create(*flVgPath)
+		file, err := os.Create(*flVgPath)
 		if err != nil {
+			logrus.Fatal(err)
+		}
+		if err := file.Chmod(0700); err != nil {
 			logrus.Fatal(err)
 		}
 	}
