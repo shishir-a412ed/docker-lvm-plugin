@@ -204,6 +204,20 @@ func saveToDisk(volumes map[string]*vol) error {
 	return json.NewEncoder(fh).Encode(&volumes)
 }
 
+func loadFromDisk(l *lvmDriver) error {
+	jsonSource, err := os.Open(lvmConfigPath)
+	if err != nil {
+		return err
+	}
+	defer jsonSource.Close()
+
+	// Load volume metadata
+	if err := json.NewDecoder(jsonSource).Decode(&l.volumes); err != nil {
+		return err
+	}
+	return nil
+}
+
 func resp(r interface{}) volume.Response {
 	switch t := r.(type) {
 	case error:

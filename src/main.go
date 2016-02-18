@@ -65,6 +65,9 @@ func main() {
 	}
 
 	lvm := newDriver(*flHome, *flVgPath)
+	if err := loadFromDisk(lvm); err != nil {
+		logrus.Fatal(err)
+	}
 
 	h := volume.NewHandler(lvm)
 	if err := h.ServeUnix("root", *flListen); err != nil {
