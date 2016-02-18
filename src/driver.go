@@ -88,7 +88,6 @@ func (l *lvmDriver) List(req volume.Request) volume.Response {
 	l.Lock()
 	defer l.Unlock()
 	var ls []*volume.Volume
-	fmt.Println(len(ls))
 	for _, vol := range l.volumes {
 		v := &volume.Volume{
 			Name:       vol.name,
