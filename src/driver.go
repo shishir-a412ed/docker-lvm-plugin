@@ -80,7 +80,7 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	v := &vol{req.Name, mp}
 	l.volumes[v.Name] = v
 	l.count[v] = 0
-	if err := saveToDisk(l.volumes); err != nil {
+	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
 	}
 	return resp(v.MountPoint)
@@ -194,27 +194,49 @@ func getMountpoint(home, name string) string {
 	return path.Join(home, name)
 }
 
-func saveToDisk(volumes map[string]*vol) error {
-	fh, err := os.Create(lvmConfigPath)
+func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
+	fhVolumes, err := os.Create(lvmVolumesConfigPath)
 	if err != nil {
 		return err
 	}
-	defer fh.Close()
+	defer fhVolumes.Close()
 
-	return json.NewEncoder(fh).Encode(&volumes)
+	if err := json.NewEncoder(fhVolumes).Encode(&volumes); err != nil {
+		return err
+	}
+
+	fhCount, err := os.Create(lvmCountConfigPath)
+	if err != nil {
+		return err
+	}
+	defer fhCount.Close()
+
+	return json.NewEncoder(fhCount).Encode(&count)
 }
 
 func loadFromDisk(l *lvmDriver) error {
-	jsonSource, err := os.Open(lvmConfigPath)
+	jsonVolumes, err := os.Open(lvmVolumesConfigPath)
 	if err != nil {
 		return err
 	}
-	defer jsonSource.Close()
+	defer jsonVolumes.Close()
 
-	// Load volume metadata
-	if err := json.NewDecoder(jsonSource).Decode(&l.volumes); err != nil {
+	// Load volume store metadata
+	if err := json.NewDecoder(jsonVolumes).Decode(&l.volumes); err != nil {
 		return err
 	}
+
+	jsonCount, err := os.Open(lvmCountConfigPath)
+	if err != nil {
+		return err
+	}
+	defer jsonCount.Close()
+
+	// Load count store metadata
+	if err := json.NewDecoder(jsonCount).Decode(&l.count); err != nil {
+		return err
+	}
+
 	return nil
 }
 
