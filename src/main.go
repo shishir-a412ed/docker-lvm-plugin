@@ -13,7 +13,7 @@ const (
 	lvmPluginSocketPath  = "/var/run/docker/plugins"
 	vgConfigPath         = "/etc/sysconfig/docker-lvm-volumegroup"
 	lvmVolumesConfigPath = "/etc/lvmVolumesConfig.json"
-	lvmCountConfigPath   = "/etc/lvmCountConfig.json"
+	lvmCountConfigPath   = "/etc/lvmCountConfig.csv"
 )
 
 var (

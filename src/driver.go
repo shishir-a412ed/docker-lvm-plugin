@@ -1,12 +1,15 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -211,7 +214,15 @@ func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
 	}
 	defer fhCount.Close()
 
-	return json.NewEncoder(fhCount).Encode(&count)
+	csvWriter := csv.NewWriter(fhCount)
+	for v, c := range count {
+		if err := csvWriter.Write([]string{v.Name, v.MountPoint, strconv.Itoa(c)}); err != nil {
+			return err
+		}
+	}
+
+	csvWriter.Flush()
+	return nil
 }
 
 func loadFromDisk(l *lvmDriver) error {
@@ -226,15 +237,29 @@ func loadFromDisk(l *lvmDriver) error {
 		return err
 	}
 
-	jsonCount, err := os.Open(lvmCountConfigPath)
+	// Load count store metadata
+	fhRead, err := os.Open(lvmCountConfigPath)
 	if err != nil {
 		return err
 	}
-	defer jsonCount.Close()
 
-	// Load count store metadata
-	if err := json.NewDecoder(jsonCount).Decode(&l.count); err != nil {
-		return err
+	defer fhRead.Close()
+
+	csvReader := csv.NewReader(fhRead)
+	for {
+		record, err := csvReader.Read()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		v := &vol{Name: record[0], MountPoint: record[1]}
+		c, err := strconv.Atoi(record[2])
+		if err != nil {
+			return err
+		}
+		l.count[v] = c
 	}
 
 	return nil
