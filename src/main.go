@@ -66,8 +66,12 @@ func main() {
 	}
 
 	lvm := newDriver(*flHome, *flVgPath)
-	if err := loadFromDisk(lvm); err != nil {
-		logrus.Fatal(err)
+
+	// Call loadFromDisk only if config file exists.
+	if _, err := os.Stat(lvmVolumesConfigPath); err == nil {
+		if err := loadFromDisk(lvm); err != nil {
+			logrus.Fatal(err)
+		}
 	}
 
 	h := volume.NewHandler(lvm)
