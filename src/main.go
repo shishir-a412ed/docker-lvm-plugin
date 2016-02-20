@@ -10,26 +10,21 @@ import (
 )
 
 const (
-	lvmPluginSocketPath  = "/var/run/docker/plugins"
+	lvmPluginSocketPath  = "/run/docker/plugins/lvm.sock"
 	vgConfigPath         = "/etc/sysconfig/docker-lvm-volumegroup"
+	lvmHome              = "/run/docker-lvm"
 	lvmVolumesConfigPath = "/etc/lvmVolumesConfig.json"
 	lvmCountConfigPath   = "/etc/lvmCountConfig.csv"
 )
 
 var (
-	flVgPath  *string
-	flHome    *string
 	flVersion *bool
 	flDebug   *bool
-	flListen  *string
 )
 
 func init() {
-	flVgPath = flag.String("vg-config", vgConfigPath, "Location of the volume group config file")
-	flHome = flag.String("home", "/var/run/docker-lvm", "Home directory for lvm volume storage")
 	flVersion = flag.Bool("version", false, "Print version information and quit")
 	flDebug = flag.Bool("debug", false, "Enable debug logging")
-	flListen = flag.String("listen", lvmPluginSocketPath+"/lvm.sock", "Socket to listen for incoming connections")
 }
 
 func main() {
@@ -45,18 +40,18 @@ func main() {
 		logrus.SetLevel(logrus.DebugLevel)
 	}
 
-	if _, err := os.Stat(*flHome); err != nil {
+	if _, err := os.Stat(lvmHome); err != nil {
 		if !os.IsNotExist(err) {
 			logrus.Fatal(err)
 		}
-		logrus.Debugf("Created home dir at %s", *flHome)
-		if err := os.MkdirAll(*flHome, 0700); err != nil {
+		logrus.Debugf("Created home dir at %s", lvmHome)
+		if err := os.MkdirAll(lvmHome, 0700); err != nil {
 			logrus.Fatal(err)
 		}
 	}
 
-	if _, err := os.Stat(*flVgPath); os.IsNotExist(err) {
-		file, err := os.Create(*flVgPath)
+	if _, err := os.Stat(vgConfigPath); os.IsNotExist(err) {
+		file, err := os.Create(vgConfigPath)
 		if err != nil {
 			logrus.Fatal(err)
 		}
@@ -65,7 +60,7 @@ func main() {
 		}
 	}
 
-	lvm := newDriver(*flHome, *flVgPath)
+	lvm := newDriver(lvmHome, vgConfigPath)
 
 	// Call loadFromDisk only if config file exists.
 	if _, err := os.Stat(lvmVolumesConfigPath); err == nil {
@@ -75,7 +70,7 @@ func main() {
 	}
 
 	h := volume.NewHandler(lvm)
-	if err := h.ServeUnix("root", *flListen); err != nil {
+	if err := h.ServeUnix("root", lvmPluginSocketPath); err != nil {
 		logrus.Fatal(err)
 	}
 
