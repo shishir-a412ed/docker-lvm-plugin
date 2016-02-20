@@ -1,0 +1,15 @@
+[Unit]
+Description=Docker Volume Driver for lvm volumes
+After=network.target
+
+[Service]
+Type=notify
+EnvironmentFile=-/etc/sysconfig/docker-lvm-volumegroup
+ExecStart=/usr/bin/lvm-plugin -debug
+Restart=on-failure
+TimeoutStartSec=1min
+
+[Install]
+WantedBy=multi-user.target
+
+
