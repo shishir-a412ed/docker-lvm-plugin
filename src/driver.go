@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -186,11 +186,25 @@ func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 }
 
 func getVolumegroupName(vgConfig string) (string, error) {
-	vgName, err := ioutil.ReadFile(vgConfig)
+	vgName := ""
+	inFile, err := os.Open(vgConfig)
 	if err != nil {
 		return "", err
 	}
-	return strings.Trim(string(vgName), "\n"), nil
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	scanner.Split(bufio.ScanLines)
+
+	for scanner.Scan() {
+		str := scanner.Text()
+		if strings.HasPrefix(str, "#") {
+			continue
+		}
+		vgName = str
+		break
+	}
+
+	return strings.TrimSpace(vgName), nil
 }
 
 func getMountpoint(home, name string) string {
