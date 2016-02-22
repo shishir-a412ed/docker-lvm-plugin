@@ -287,7 +287,8 @@ func loadFromDisk(l *lvmDriver) error {
 			}
 			return err
 		}
-		v := &vol{Name: record[0], MountPoint: record[1]}
+		name := record[0]
+		v := l.volumes[name]
 		c, err := strconv.Atoi(record[2])
 		if err != nil {
 			return err
