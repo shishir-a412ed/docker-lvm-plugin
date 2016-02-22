@@ -21,7 +21,7 @@ type lvmDriver struct {
 	vgConfig string
 	volumes  map[string]*vol
 	count    map[*vol]int
-	sync.Mutex
+	sync.RWMutex
 }
 
 type vol struct {
