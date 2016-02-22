@@ -171,6 +171,9 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
+	if err := saveToDisk(l.volumes, l.count); err != nil {
+		return resp(err)
+	}
 	return resp(getMountpoint(l.home, req.Name))
 }
 
@@ -184,7 +187,9 @@ func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
-
+	if err := saveToDisk(l.volumes, l.count); err != nil {
+		return resp(err)
+	}
 	return resp(getMountpoint(l.home, req.Name))
 }
 
