@@ -161,7 +161,6 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]++
-
 	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
 		return resp(err)
@@ -220,6 +219,12 @@ func getMountpoint(home, name string) string {
 }
 
 func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
+	if _, err := os.Stat(lvmVolumesConfigPath); err == nil {
+		if err := os.Remove(lvmVolumesConfigPath); err != nil {
+			return err
+		}
+	}
+
 	fhVolumes, err := os.Create(lvmVolumesConfigPath)
 	if err != nil {
 		return err
@@ -228,6 +233,12 @@ func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
 
 	if err := json.NewEncoder(fhVolumes).Encode(&volumes); err != nil {
 		return err
+	}
+
+	if _, err := os.Stat(lvmCountConfigPath); err == nil {
+		if err := os.Remove(lvmCountConfigPath); err != nil {
+			return err
+		}
 	}
 
 	fhCount, err := os.Create(lvmCountConfigPath)
@@ -283,7 +294,6 @@ func loadFromDisk(l *lvmDriver) error {
 		}
 		l.count[v] = c
 	}
-
 	return nil
 }
 
