@@ -46,12 +46,28 @@ This will list volumes created by all docker drivers including the default drive
 $ docker volume inspect foobar
 ```
 This will inspect foobar and return a JSON.
+```bash
+[
+    {
+        "Name": "foobar",
+        "Driver": "lvm",
+        "Mountpoint": "/run/docker-lvm/foobar123"
+    }
+]
+```
 
 ## Volume Removal
 ```bash
 $ docker volume rm foobar
 ```
 This will remove lvm volume foobar.
+
+## Bind Mount lvm volume inside the container
+
+```bash
+$ docker run -it --volume-driver=lvm -v foobar:/home fedora /bin/bash
+```
+This will bind mount the logical volume `foobar` into the home directory of the container.
 
 ## License
 Apache
