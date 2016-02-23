@@ -50,16 +50,6 @@ func main() {
 		}
 	}
 
-	if _, err := os.Stat(vgConfigPath); os.IsNotExist(err) {
-		file, err := os.Create(vgConfigPath)
-		if err != nil {
-			logrus.Fatal(err)
-		}
-		if err := file.Chmod(0700); err != nil {
-			logrus.Fatal(err)
-		}
-	}
-
 	lvm := newDriver(lvmHome, vgConfigPath)
 
 	// Call loadFromDisk only if config file exists.
