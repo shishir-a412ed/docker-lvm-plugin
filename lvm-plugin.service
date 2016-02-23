@@ -2,15 +2,11 @@
 Description=Docker Volume Driver for lvm volumes
 Documentation=https://github.com/shishir-a412ed/docker-lvm-driver
 Before=docker.service
-Requires=docker.service
-After=network.target
 
 [Service]
-Type=notify
+Type=simple
 EnvironmentFile=-/etc/sysconfig/docker-lvm-volumegroup
 ExecStart=/usr/bin/lvm-plugin -debug
-Restart=on-failure
-TimeoutStartSec=1min
 
 [Install]
 WantedBy=multi-user.target
