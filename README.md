@@ -13,19 +13,25 @@ then be bind mounted into the container using `docker run` command.
 ## Usage
 
 1) Start the docker daemon before starting the lvm-plugin daemon.
-   You can start docker daemon using `systemctl start docker`
-
+   You can start docker daemon using command:
+```bash
+systemctl start docker
+```
 2) Once docker daemon is up and running, you can start lvm-plugin daemon
-   using `systemctl start lvm-plugin`
-
+   using command:
+```bash
+systemctl start lvm-plugin
+```
 3) Since logical volumes (lv's) are based on a volume group, it is the 
    responsibility of the user (administrator) to provide a volume group name.
    You can choose an existing volume group name by listing volume groups on 
    your system using `vgs` command OR create a new volume group using 
    `vgcreate` command.
 
-4) Add volume group name in the config file `/etc/sysconfig/docker-lvm-volumegroup`
-
+4) Add this volume group name in the config file 
+```bash
+/etc/sysconfig/docker-lvm-volumegroup
+```
 ## Volume Creation
 
 ``` bash
@@ -65,7 +71,7 @@ This will remove lvm volume foobar.
 ## Bind Mount lvm volume inside the container
 
 ```bash
-$ docker run -it --volume-driver=lvm -v foobar:/home fedora /bin/bash
+$ docker run -it -v foobar:/home fedora /bin/bash
 ```
 This will bind mount the logical volume `foobar` into the home directory of the container.
 
