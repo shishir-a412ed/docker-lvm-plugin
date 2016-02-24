@@ -165,10 +165,11 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	if err != nil {
 		return resp(err)
 	}
-
-	cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", vgName, req.Name), getMountpoint(l.home, req.Name))
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return resp(fmt.Errorf("%s", string(out)))
+	if l.count[v] == 1 {
+		cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", vgName, req.Name), getMountpoint(l.home, req.Name))
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resp(fmt.Errorf("%s", string(out)))
+		}
 	}
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
@@ -182,9 +183,11 @@ func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 	defer l.Unlock()
 	v := l.volumes[req.Name]
 	l.count[v]--
-	cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
-	if out, err := cmd.CombinedOutput(); err != nil {
-		return resp(fmt.Errorf("%s", string(out)))
+	if l.count[v] == 0 {
+		cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return resp(fmt.Errorf("%s", string(out)))
+		}
 	}
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
