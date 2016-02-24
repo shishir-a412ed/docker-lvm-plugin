@@ -76,7 +76,7 @@ $ docker run -it -v foobar:/home fedora /bin/bash
 This will bind mount the logical volume `foobar` into the home directory of the container.
 
 ## License
-Apache
+GNU GPL
 
 
 
