@@ -207,7 +207,8 @@ func getVolumegroupName(vgConfig string) (string, error) {
 		if strings.HasPrefix(str, "#") {
 			continue
 		}
-		vgName = str
+		vgSlice := strings.Split(str, "=")
+		vgName = vgSlice[1]
 		break
 	}
 

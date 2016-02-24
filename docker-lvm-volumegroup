@@ -2,3 +2,4 @@
 # to create logical volumes using docker lvm plugin. You can choose an existing
 # volume group name by listing volume groups on your system using `vgs` command 
 # OR create a new volume group using `vgcreate` command.
+VOLUME_GROUP=

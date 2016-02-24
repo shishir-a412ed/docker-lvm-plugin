@@ -24,7 +24,7 @@ then be bind mounted into the container using `docker run` command.
    your system using `vgs` command OR create a new volume group using 
    `vgcreate` command.
 
-4) Update volume group name in the config file `/etc/sysconfig/docker-lvm-volumegroup`
+4) Add volume group name in the config file `/etc/sysconfig/docker-lvm-volumegroup`
 
 ## Volume Creation
 
