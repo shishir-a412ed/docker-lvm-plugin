@@ -15,15 +15,15 @@ which can then be bind mounted into the container using `docker run`
 command. 
 
 # USAGE
-Start the docker daemon before starting the lvm-plugin daemon. 
+Start the docker daemon before starting the docker-lvm-plugin daemon. 
 You can start docker daemon using command:
 ```bash
 systemctl start docker 
 ```
-Once docker daemon is up and running, you can start lvm-plugin daemon
+Once docker daemon is up and running, you can start docker-lvm-plugin daemon
 using command:
 ```bash
-systemctl start lvm-plugin
+systemctl start docker-lvm-plugin
 ``` 
 Since logical volumes (lv's) are based on a volume group, it is the 
 responsibility of the user (administrator) to provide a volume group name. 
@@ -31,7 +31,7 @@ You can choose an existing volume group name by listing volume groups on
 your system using `vgs` command OR create a new volume group using `vgcreate` 
 command. Add this volume group name in the config file. 
 ```bash
-/etc/sysconfig/docker-lvm-volumegroup
+/etc/docker/docker-lvm-plugin.conf
 ```
 # OPTIONS
 **-debug**=*true*|*false*

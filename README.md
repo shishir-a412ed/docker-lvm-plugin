@@ -1,4 +1,4 @@
-# docker lvm driver
+# docker lvm plugin
 Docker Volume Driver for lvm volumes
 
 This plugin can be used to create lvm volumes of specified size, which can 
@@ -6,21 +6,21 @@ then be bind mounted into the container using `docker run` command.
 
 ## Setup
 
-	1) git clone git@github.com:shishir-a412ed/docker-lvm-driver.git
-	2) cd docker-lvm-driver
+	1) git clone git@github.com:shishir-a412ed/docker-lvm-plugin.git
+	2) cd docker-lvm-plugin
 	3) sudo make install
 
 ## Usage
 
-1) Start the docker daemon before starting the lvm-plugin daemon.
+1) Start the docker daemon before starting the docker-lvm-plugin daemon.
    You can start docker daemon using command:
 ```bash
 systemctl start docker
 ```
-2) Once docker daemon is up and running, you can start lvm-plugin daemon
+2) Once docker daemon is up and running, you can start docker-lvm-plugin daemon
    using command:
 ```bash
-systemctl start lvm-plugin
+systemctl start docker-lvm-plugin
 ```
 3) Since logical volumes (lv's) are based on a volume group, it is the 
    responsibility of the user (administrator) to provide a volume group name.
@@ -30,7 +30,7 @@ systemctl start lvm-plugin
 
 4) Add this volume group name in the config file 
 ```bash
-/etc/sysconfig/docker-lvm-volumegroup
+/etc/docker/docker-lvm-plugin.conf
 ```
 ## Volume Creation
 
