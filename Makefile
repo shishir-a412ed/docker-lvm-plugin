@@ -1,8 +1,8 @@
 # Installation Directories
-SYSCONFDIR ?= /etc/sysconfig
+SYSCONFDIR ?= /etc/docker
 SYSTEMDIR ?= /usr/lib/systemd/system
 GOLANG ?= /usr/bin/go
-BINARY ?= lvm-plugin
+BINARY ?= docker-lvm-plugin
 GOPATH ?= $(CURDIR)/_vendor
 export GOPATH
 
@@ -16,14 +16,14 @@ lvm-plugin-build: src/main.go src/driver.go
 
 .PHONY: install 
 install: all
-	cp docker-lvm-volumegroup $(SYSCONFDIR)
-	cp lvm-plugin.service $(SYSTEMDIR)
+	cp docker-lvm-plugin.conf $(SYSCONFDIR)
+	cp docker-lvm-plugin.service $(SYSTEMDIR)
 	mv $(BINARY) /usr/bin
 
 .PHONY: clean
 clean:
 	rm -rf _vendor
-	rm $(SYSCONFDIR)/docker-lvm-volumegroup
-	rm $(SYSTEMDIR)/lvm-plugin.service
+	rm $(SYSCONFDIR)/docker-lvm-plugin.conf
+	rm $(SYSTEMDIR)/docker-lvm-plugin.service
 	rm /usr/bin/$(BINARY)
 
