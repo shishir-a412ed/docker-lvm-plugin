@@ -57,7 +57,7 @@ This will inspect foobar and return a JSON.
     {
         "Name": "foobar",
         "Driver": "lvm",
-        "Mountpoint": "/run/docker-lvm/foobar123"
+        "Mountpoint": "/var/lib/docker-lvm/foobar123"
     }
 ]
 ```

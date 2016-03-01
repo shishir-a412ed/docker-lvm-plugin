@@ -14,7 +14,7 @@ import (
 const (
 	lvmPluginSocketPath  = "/run/docker/plugins/lvm.sock"
 	vgConfigPath         = "/etc/docker/docker-lvm-plugin.conf"
-	lvmHome              = "/run/docker-lvm"
+	lvmHome              = "/var/lib/docker-lvm"
 	lvmVolumesConfigPath = "/etc/lvmVolumesConfig.json"
 	lvmCountConfigPath   = "/etc/lvmCountConfig.csv"
 )
