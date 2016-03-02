@@ -27,6 +27,12 @@ systemctl start docker-lvm-plugin
    You can choose an existing volume group name by listing volume groups on 
    your system using `vgs` command OR create a new volume group using 
    `vgcreate` command.
+   e.g. 
+```bash
+vgcreate volume_group_one /dev/hda 
+```
+   where /dev/hda is your partition or whole disk on which physical volumes 
+   were created.
 
 4) Add this volume group name in the config file 
 ```bash

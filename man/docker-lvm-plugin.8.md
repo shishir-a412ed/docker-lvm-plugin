@@ -29,7 +29,14 @@ Since logical volumes (lv's) are based on a volume group, it is the
 responsibility of the user (administrator) to provide a volume group name. 
 You can choose an existing volume group name by listing volume groups on 
 your system using `vgs` command OR create a new volume group using `vgcreate` 
-command. Add this volume group name in the config file. 
+command. e.g.
+```bash
+vgcreate volume_group_one /dev/hda 
+```
+where /dev/hda is your partition or whole disk on which physical volumes 
+were created.
+
+Add this volume group name in the config file. 
 ```bash
 /etc/docker/docker-lvm-plugin.conf
 ```
