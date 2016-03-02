@@ -43,8 +43,6 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 	defer l.Unlock()
 	var size string
 
-	fmt.Println("HELLO LVM PLUGIN: CREATE")
-
 	if v, exists := l.volumes[req.Name]; exists {
 		return resp(v.MountPoint)
 	}
@@ -90,7 +88,6 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) List(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: LIST")
 	var res volume.Response
 	l.Lock()
 	defer l.Unlock()
@@ -107,7 +104,6 @@ func (l *lvmDriver) List(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Get(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: GET")
 	var res volume.Response
 	l.Lock()
 	defer l.Unlock()
@@ -123,7 +119,6 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Remove(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: REMOVE")
 	l.Lock()
 	defer l.Unlock()
 
@@ -151,12 +146,10 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Path(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: PATH")
 	return resp(getMountpoint(l.home, req.Name))
 }
 
 func (l *lvmDriver) Mount(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: MOUNT")
 	l.Lock()
 	defer l.Unlock()
 	v := l.volumes[req.Name]
@@ -178,7 +171,6 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
-	fmt.Println("HELLO LVM PLUGIN: UNMOUNT")
 	l.Lock()
 	defer l.Unlock()
 	v := l.volumes[req.Name]
