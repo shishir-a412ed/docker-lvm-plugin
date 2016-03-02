@@ -2,14 +2,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/csv"
 	"encoding/json"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -20,7 +17,7 @@ type lvmDriver struct {
 	home     string
 	vgConfig string
 	volumes  map[string]*vol
-	count    map[*vol]int
+	count    map[string]int
 	sync.RWMutex
 }
 
@@ -34,7 +31,7 @@ func newDriver(home, vgConfig string) *lvmDriver {
 		home:     home,
 		vgConfig: vgConfig,
 		volumes:  make(map[string]*vol),
-		count:    make(map[*vol]int),
+		count:    make(map[string]int),
 	}
 }
 
@@ -80,7 +77,7 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 
 	v := &vol{req.Name, mp}
 	l.volumes[v.Name] = v
-	l.count[v] = 0
+	l.count[v.Name] = 0
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
 	}
@@ -136,8 +133,7 @@ func (l *lvmDriver) Remove(req volume.Request) volume.Response {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
 
-	v := l.volumes[req.Name]
-	delete(l.count, v)
+	delete(l.count, req.Name)
 	delete(l.volumes, req.Name)
 	if err := saveToDisk(l.volumes, l.count); err != nil {
 		return resp(err)
@@ -152,13 +148,12 @@ func (l *lvmDriver) Path(req volume.Request) volume.Response {
 func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 	l.Lock()
 	defer l.Unlock()
-	v := l.volumes[req.Name]
-	l.count[v]++
+	l.count[req.Name]++
 	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
 		return resp(err)
 	}
-	if l.count[v] == 1 {
+	if l.count[req.Name] == 1 {
 		cmd := exec.Command("mount", fmt.Sprintf("/dev/%s/%s", vgName, req.Name), getMountpoint(l.home, req.Name))
 		if out, err := cmd.CombinedOutput(); err != nil {
 			return resp(fmt.Errorf("%s", string(out)))
@@ -173,9 +168,8 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
 	l.Lock()
 	defer l.Unlock()
-	v := l.volumes[req.Name]
-	l.count[v]--
-	if l.count[v] == 0 {
+	l.count[req.Name]--
+	if l.count[req.Name] == 0 {
 		cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
 		if out, err := cmd.CombinedOutput(); err != nil {
 			return resp(fmt.Errorf("%s", string(out)))
@@ -214,7 +208,8 @@ func getMountpoint(home, name string) string {
 	return path.Join(home, name)
 }
 
-func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
+func saveToDisk(volumes map[string]*vol, count map[string]int) error {
+	// Save volume store metadata.
 	if _, err := os.Stat(lvmVolumesConfigPath); err == nil {
 		if err := os.Remove(lvmVolumesConfigPath); err != nil {
 			return err
@@ -231,6 +226,7 @@ func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
 		return err
 	}
 
+	// Save count store metadata.
 	if _, err := os.Stat(lvmCountConfigPath); err == nil {
 		if err := os.Remove(lvmCountConfigPath); err != nil {
 			return err
@@ -243,55 +239,29 @@ func saveToDisk(volumes map[string]*vol, count map[*vol]int) error {
 	}
 	defer fhCount.Close()
 
-	csvWriter := csv.NewWriter(fhCount)
-	for v, c := range count {
-		if err := csvWriter.Write([]string{v.Name, v.MountPoint, strconv.Itoa(c)}); err != nil {
-			return err
-		}
-	}
-
-	csvWriter.Flush()
-	return nil
+	return json.NewEncoder(fhCount).Encode(&count)
 }
 
 func loadFromDisk(l *lvmDriver) error {
+	// Load volume store metadata
 	jsonVolumes, err := os.Open(lvmVolumesConfigPath)
 	if err != nil {
 		return err
 	}
 	defer jsonVolumes.Close()
 
-	// Load volume store metadata
 	if err := json.NewDecoder(jsonVolumes).Decode(&l.volumes); err != nil {
 		return err
 	}
 
 	// Load count store metadata
-	fhRead, err := os.Open(lvmCountConfigPath)
+	jsonCount, err := os.Open(lvmCountConfigPath)
 	if err != nil {
 		return err
 	}
+	defer jsonCount.Close()
 
-	defer fhRead.Close()
-
-	csvReader := csv.NewReader(fhRead)
-	for {
-		record, err := csvReader.Read()
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
-		}
-		name := record[0]
-		v := l.volumes[name]
-		c, err := strconv.Atoi(record[2])
-		if err != nil {
-			return err
-		}
-		l.count[v] = c
-	}
-	return nil
+	return json.NewDecoder(jsonCount).Decode(&l.count)
 }
 
 func resp(r interface{}) volume.Response {
