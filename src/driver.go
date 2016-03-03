@@ -210,12 +210,6 @@ func getMountpoint(home, name string) string {
 
 func saveToDisk(volumes map[string]*vol, count map[string]int) error {
 	// Save volume store metadata.
-	if _, err := os.Stat(lvmVolumesConfigPath); err == nil {
-		if err := os.Remove(lvmVolumesConfigPath); err != nil {
-			return err
-		}
-	}
-
 	fhVolumes, err := os.Create(lvmVolumesConfigPath)
 	if err != nil {
 		return err
@@ -227,12 +221,6 @@ func saveToDisk(volumes map[string]*vol, count map[string]int) error {
 	}
 
 	// Save count store metadata.
-	if _, err := os.Stat(lvmCountConfigPath); err == nil {
-		if err := os.Remove(lvmCountConfigPath); err != nil {
-			return err
-		}
-	}
-
 	fhCount, err := os.Create(lvmCountConfigPath)
 	if err != nil {
 		return err
