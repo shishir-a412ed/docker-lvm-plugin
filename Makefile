@@ -3,15 +3,12 @@ SYSCONFDIR ?= /etc/docker
 SYSTEMDIR ?= /usr/lib/systemd/system
 GOLANG ?= /usr/bin/go
 BINARY ?= docker-lvm-plugin
-GOPATH ?= $(CURDIR)/_vendor
-export GOPATH
+export GOPATH := $(CURDIR)/Godeps/_workspace:$(GOPATH)
 
 all: lvm-plugin-build
 
-lvm-plugin-build: src/main.go src/driver.go
-	$(GOLANG) get github.com/Sirupsen/logrus
-	$(GOLANG) get github.com/docker/go-plugins-helpers/volume
-	$(GOLANG) build -o $(BINARY) src/main.go src/driver.go
+lvm-plugin-build: main.go driver.go
+	$(GOLANG) build -o $(BINARY) main.go driver.go
 	
 
 .PHONY: install 
