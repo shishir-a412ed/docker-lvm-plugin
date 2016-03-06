@@ -18,7 +18,7 @@ type lvmDriver struct {
 	vgConfig string
 	volumes  map[string]*vol
 	count    map[string]int
-	sync.RWMutex
+	mu       sync.RWMutex
 }
 
 type vol struct {
@@ -36,9 +36,8 @@ func newDriver(home, vgConfig string) *lvmDriver {
 }
 
 func (l *lvmDriver) Create(req volume.Request) volume.Response {
-	l.Lock()
-	defer l.Unlock()
-	var size string
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	if v, exists := l.volumes[req.Name]; exists {
 		return resp(v.MountPoint)
@@ -49,18 +48,13 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 		return resp(err)
 	}
 
-	if len(vgName) == 0 {
-		return volume.Response{Err: fmt.Sprintf("Volume group name must be provided for volume creation. Please update the config file %s with volume group name.", l.vgConfig)}
+	cmdArgs := []string{"-n", req.Name}
+	if s, ok := req.Options["size"]; ok && s != "" {
+		cmdArgs = append(cmdArgs, "--size", s)
 	}
+	cmdArgs = append(cmdArgs, vgName)
 
-	for key, value := range req.Options {
-		if key == "size" {
-			size = value
-			break
-		}
-	}
-
-	cmd := exec.Command("lvcreate", "-n", req.Name, "--size", size, vgName)
+	cmd := exec.Command("lvcreate", cmdArgs...)
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return resp(fmt.Errorf("%s", string(out)))
 	}
@@ -85,9 +79,8 @@ func (l *lvmDriver) Create(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) List(req volume.Request) volume.Response {
-	var res volume.Response
-	l.Lock()
-	defer l.Unlock()
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 	var ls []*volume.Volume
 	for _, vol := range l.volumes {
 		v := &volume.Volume{
@@ -96,18 +89,17 @@ func (l *lvmDriver) List(req volume.Request) volume.Response {
 		}
 		ls = append(ls, v)
 	}
-	res.Volumes = ls
-	return res
+	return volume.Response{Volumes: ls}
 }
 
 func (l *lvmDriver) Get(req volume.Request) volume.Response {
-	var res volume.Response
-	l.Lock()
-	defer l.Unlock()
+	l.mu.RLock()
+	defer l.mu.RUnlock()
 	v, exists := l.volumes[req.Name]
 	if !exists {
 		return resp(fmt.Errorf("no such volume"))
 	}
+	var res volume.Response
 	res.Volume = &volume.Volume{
 		Name:       v.Name,
 		Mountpoint: v.MountPoint,
@@ -116,8 +108,8 @@ func (l *lvmDriver) Get(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Remove(req volume.Request) volume.Response {
-	l.Lock()
-	defer l.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 
 	if err := os.RemoveAll(getMountpoint(l.home, req.Name)); err != nil {
 		return resp(err)
@@ -146,8 +138,8 @@ func (l *lvmDriver) Path(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Mount(req volume.Request) volume.Response {
-	l.Lock()
-	defer l.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.count[req.Name]++
 	vgName, err := getVolumegroupName(l.vgConfig)
 	if err != nil {
@@ -166,8 +158,8 @@ func (l *lvmDriver) Mount(req volume.Request) volume.Response {
 }
 
 func (l *lvmDriver) Unmount(req volume.Request) volume.Response {
-	l.Lock()
-	defer l.Unlock()
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	l.count[req.Name]--
 	if l.count[req.Name] == 0 {
 		cmd := exec.Command("umount", getMountpoint(l.home, req.Name))
@@ -199,6 +191,13 @@ func getVolumegroupName(vgConfig string) (string, error) {
 		vgSlice := strings.Split(str, "=")
 		vgName = vgSlice[1]
 		break
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	if vgName == "" {
+		return "", fmt.Errorf("Volume group name must be provided for volume creation. Please update the config file %s with volume group name.", vgConfig)
 	}
 
 	return strings.TrimSpace(vgName), nil

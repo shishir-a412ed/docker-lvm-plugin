@@ -9,9 +9,8 @@ all: lvm-plugin-build
 
 lvm-plugin-build: main.go driver.go
 	$(GOLANG) build -o $(BINARY) .
-	
 
-.PHONY: install 
+.PHONY: install
 install:
 	cp docker-lvm-plugin.conf $(SYSCONFDIR)
 	cp docker-lvm-plugin.service $(SYSTEMDIR)
