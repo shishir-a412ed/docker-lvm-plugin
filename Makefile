@@ -1,6 +1,6 @@
 # Installation Directories
-SYSCONFDIR ?= /etc/docker
-SYSTEMDIR ?= /usr/lib/systemd/system
+SYSCONFDIR ?=$(DESTDIR)/etc/docker
+SYSTEMDIR ?= $(DESTDIR)/usr/lib/systemd/system
 GOLANG ?= /usr/bin/go
 BINARY ?= docker-lvm-plugin
 export GO15VENDOREXPERIMENT=1
