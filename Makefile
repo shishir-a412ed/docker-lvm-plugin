@@ -1,8 +1,10 @@
 # Installation Directories
 SYSCONFDIR ?=$(DESTDIR)/etc/docker
-SYSTEMDIR ?= $(DESTDIR)/usr/lib/systemd/system
+SYSTEMDIR ?=$(DESTDIR)/usr/lib/systemd/system
 GOLANG ?= /usr/bin/go
 BINARY ?= docker-lvm-plugin
+BINARYLOC ?=$(DESTDIR)/usr/bin
+
 export GO15VENDOREXPERIMENT=1
 
 all: lvm-plugin-build
@@ -15,7 +17,7 @@ install:
 	install docker-lvm-plugin.conf $(SYSCONFDIR)
 	install systemd/docker-lvm-plugin.service $(SYSTEMDIR)
 	install systemd/docker-lvm-plugin.socket $(SYSTEMDIR)
-	install $(BINARY) /usr/bin
+	install $(BINARY) $(BINARYLOC)
 
 .PHONY: clean
 clean:
@@ -24,5 +26,5 @@ clean:
 	rm -f $(SYSTEMDIR)/docker-lvm-plugin.service
 	rm -f $(SYSTEMDIR)/docker-lvm-plugin.socket
 	rm -f $(BINARY)
-	rm -f /usr/bin/$(BINARY)
+	rm -f $(BINARYLOC)/$(BINARY)
 
