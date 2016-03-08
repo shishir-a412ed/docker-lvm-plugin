@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/Sirupsen/logrus"
 	"github.com/docker/go-plugins-helpers/volume"
@@ -27,10 +25,6 @@ var (
 func init() {
 	flVersion = flag.Bool("version", false, "Print version information and quit")
 	flDebug = flag.Bool("debug", false, "Enable debug logging")
-}
-
-func cleanup() error {
-	return os.Remove(lvmPluginSocketPath)
 }
 
 func main() {
@@ -64,16 +58,6 @@ func main() {
 			logrus.Fatal(err)
 		}
 	}
-
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-c
-		if err := cleanup(); err != nil {
-			logrus.Fatal(err)
-		}
-		os.Exit(0)
-	}()
 
 	h := volume.NewHandler(lvm)
 	if err := h.ServeUnix("root", lvmPluginSocketPath); err != nil {
