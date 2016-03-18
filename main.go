@@ -11,10 +11,10 @@ import (
 
 const (
 	lvmPluginSocketPath  = "/run/docker/plugins/lvm.sock"
-	vgConfigPath         = "/etc/docker/docker-lvm-plugin.conf"
-	lvmHome              = "/var/lib/docker-lvm"
-	lvmVolumesConfigPath = "/var/lib/docker-lvm/lvmVolumesConfig.json"
-	lvmCountConfigPath   = "/var/lib/docker-lvm/lvmCountConfig.json"
+	vgConfigPath         = "/etc/docker/docker-lvm-plugin"
+	lvmHome              = "/var/lib/docker-lvm-plugin"
+	lvmVolumesConfigPath = "/var/lib/docker-lvm-plugin/lvmVolumesConfig.json"
+	lvmCountConfigPath   = "/var/lib/docker-lvm-plugin/lvmCountConfig.json"
 )
 
 var (

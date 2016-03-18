@@ -38,7 +38,7 @@ were created.
 
 Add this volume group name in the config file. 
 ```bash
-/etc/docker/docker-lvm-plugin.conf
+/etc/docker/docker-lvm-plugin
 ```
 # OPTIONS
 **-debug**=*true*|*false*
@@ -68,7 +68,7 @@ This will inspect foobar and return a JSON.
     {
         "Name": "foobar",
         "Driver": "lvm",
-        "Mountpoint": "/var/lib/docker-lvm/foobar123"
+        "Mountpoint": "/var/lib/docker-lvm-plugin/foobar123"
     }
 ]
 
