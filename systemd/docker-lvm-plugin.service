@@ -6,7 +6,7 @@ Before=docker.service
 [Service]
 Type=simple
 EnvironmentFile=-/etc/sysconfig/docker-lvm-volumegroup
-ExecStart=/usr/bin/docker-lvm-plugin
+ExecStart=/usr/libexec/docker/docker-lvm-plugin
 
 [Install]
 WantedBy=multi-user.target

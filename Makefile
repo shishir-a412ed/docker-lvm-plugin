@@ -4,7 +4,7 @@ SYSTEMDIR ?=$(DESTDIR)/usr/lib/systemd/system
 GOLANG ?= /usr/bin/go
 BINARY ?= docker-lvm-plugin
 MANINSTALLDIR?= ${DESTDIR}/usr/share/man
-BINDIR ?=$(DESTDIR)/usr/bin
+BINDIR ?=$(DESTDIR)/usr/libexec/docker
 
 export GO15VENDOREXPERIMENT=1
 
