@@ -8,19 +8,20 @@ then be bind mounted into the container using `docker run` command.
 
 	1) git clone git@github.com:shishir-a412ed/docker-lvm-plugin.git
 	2) cd docker-lvm-plugin
-	3) sudo make install
+	3) make
+	4) sudo make install
 
 ## Usage
 
 1) Start the docker daemon before starting the docker-lvm-plugin daemon.
    You can start docker daemon using command:
 ```bash
-systemctl start docker
+sudo systemctl start docker
 ```
 2) Once docker daemon is up and running, you can start docker-lvm-plugin daemon
    using command:
 ```bash
-systemctl start docker-lvm-plugin
+sudo systemctl start docker-lvm-plugin
 ```
 3) Since logical volumes (lv's) are based on a volume group, it is the 
    responsibility of the user (administrator) to provide a volume group name.
@@ -36,7 +37,7 @@ vgcreate volume_group_one /dev/hda
 
 4) Add this volume group name in the config file 
 ```bash
-/etc/docker/docker-lvm-plugin.conf
+/etc/docker/docker-lvm-plugin
 ```
 ## Volume Creation
 
@@ -63,7 +64,7 @@ This will inspect foobar and return a JSON.
     {
         "Name": "foobar",
         "Driver": "lvm",
-        "Mountpoint": "/var/lib/docker-lvm/foobar123"
+        "Mountpoint": "/var/lib/docker-lvm-plugin/foobar123"
     }
 ]
 ```
