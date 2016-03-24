@@ -1,3 +1,5 @@
+This project has been moved under projectatomic/docker-lvm-plugin (https://github.com/projectatomic/docker-lvm-plugin).
+
 # docker lvm plugin
 Docker Volume Driver for lvm volumes
 
